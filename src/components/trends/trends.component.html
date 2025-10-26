@@ -1,0 +1,115 @@
+<div class="space-y-8">
+  <header>
+    <h1 class="text-3xl font-bold text-white">Trends & Calendar</h1>
+    <p class="text-gray-400">Visualize your consistency and progress.</p>
+  </header>
+
+  <!-- Stats Overview -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+    <div class="p-4 bg-[#131321] rounded-lg border border-white/10">
+        <p class="text-sm text-gray-400">Longest Streak</p>
+        <p class="text-2xl font-bold text-[#7C5CFF]">{{ longestStreak() }} Days</p>
+    </div>
+    <div class="p-4 bg-[#131321] rounded-lg border border-white/10">
+        <p class="text-sm text-gray-400">Completion Rate</p>
+        <p class="text-2xl font-bold text-[#00E0B8]">{{ completionRate() }}%</p>
+    </div>
+    <div class="p-4 bg-[#131321] rounded-lg border border-white/10">
+        <p class="text-sm text-gray-400">Habits Done</p>
+        <p class="text-2xl font-bold text-white">{{ habitsDone() }}</p>
+    </div>
+    <div class="p-4 bg-[#131321] rounded-lg border border-white/10">
+        <p class="text-sm text-gray-400">Avg Mood</p>
+        <p class="text-2xl font-bold text-yellow-400">{{ avgMood() }} / 5</p>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
+      <header class="flex justify-between items-center mb-4">
+        <button (click)="changeMonth(-1)" class="p-2 rounded-full hover:bg-white/10">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <h2 class="text-xl font-semibold text-gray-200">
+          {{ currentMonthDate() | date:'MMMM yyyy' }}
+        </h2>
+        <button (click)="changeMonth(1)" class="p-2 rounded-full hover:bg-white/10">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </header>
+      
+      <div class="grid grid-cols-7 gap-1 text-center font-semibold text-xs text-gray-500 mb-2">
+        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+      </div>
+
+      <div class="grid grid-cols-7 gap-1 sm:gap-2">
+        @for (day of calendarDays(); track day.date) {
+          <div 
+            (click)="viewDayDetails(day)"
+            class="h-12 sm:h-14 p-1 border border-transparent rounded-md flex flex-col items-start transition-colors"
+            [class.cursor-pointer]="day.activityCount > 0 && day.isCurrentMonth"
+            [class.hover:bg-white/10]="day.activityCount > 0 && day.isCurrentMonth"
+            [class.text-gray-600]="!day.isCurrentMonth"
+            [class.border-[#7C5CFF]/80]="day.isToday"
+            [style.background-color]="day.isCurrentMonth ? 'rgba(0, 224, 184, ' + (day.activityCount * 0.1) + ')' : ''"
+            >
+            <span class="font-medium text-[10px] sm:text-xs">{{ day.date | date:'d' }}</span>
+          </div>
+        }
+      </div>
+  </div>
+
+  <!-- Trend Graphs -->
+  <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
+    <h2 class="text-xl font-semibold mb-4 text-gray-200">Mood Over Time</h2>
+    @if (moodData().length > 1) {
+      <div #moodChart class="w-full h-64"></div>
+    } @else {
+      <div class="flex items-center justify-center h-64 bg-[#0b0b12] rounded-md">
+        <p class="text-gray-500">Log your mood for at least two days to see a trend.</p>
+      </div>
+    }
+  </div>
+
+  <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
+    <h2 class="text-xl font-semibold mb-4 text-gray-200">Weight Over Time</h2>
+    @if (weightData().length > 1) {
+      <div #weightChart class="w-full h-64"></div>
+    } @else {
+      <div class="flex items-center justify-center h-64 bg-[#0b0b12] rounded-md">
+        <p class="text-gray-500">Log your weight at least twice to see a trend.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Daily Log Modal -->
+  @if(selectedDayLog(); as log) {
+    <div class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 flex items-center justify-center p-4" (click)="closeModal()">
+      <div class="bg-[#0b0b12] border border-[#7C5CFF]/50 rounded-lg shadow-2xl shadow-[#7C5CFF]/20 w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
+        <h3 class="text-lg font-semibold mb-4 text-white">Log for {{ log.date | date:'fullDate' }}</h3>
+        
+        @if(log.mood) {
+          <div class="mb-4">
+            <h4 class="font-semibold text-gray-300">Mood: {{ getMoodIcon(log.mood.rating) }} ({{log.mood.rating}}/5)</h4>
+            @if(log.mood.note) {
+              <p class="text-sm text-gray-300 italic p-2 bg-[#131321] rounded-md mt-1">"{{log.mood.note}}"</p>
+            }
+          </div>
+        }
+        
+        @if(log.habits.length > 0) {
+          <div class="mb-4">
+            <h4 class="font-semibold text-gray-300">Habits:</h4>
+            <ul class="list-disc list-inside text-sm mt-1 text-gray-400">
+              @for(habit of log.habits; track habit.title){
+                <li>{{habit.title}}: {{habit.value}} / {{habit.target}} {{habit.unit}}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <button (click)="closeModal()" class="mt-4 w-full px-4 py-2 bg-[#7C5CFF] text-white rounded-md hover:bg-[#6a48ff]">Close</button>
+      </div>
+    </div>
+  }
+</div>
