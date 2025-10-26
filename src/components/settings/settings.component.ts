@@ -63,19 +63,28 @@ import { ApiKeyService } from '../../services/api-key.service';
         </form>
       </div>
 
-      <!-- API Key Status -->
+      <!-- API Key Management -->
       <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
-        <h2 class="text-xl font-semibold mb-4 text-gray-200">Gemini API Key Status</h2>
-        @if (isApiKeyConfigured()) {
-           <p class="text-sm text-green-400 flex items-center gap-2">
-             <i class="fas fa-check-circle"></i>
-             API Key is configured via environment variables. AI features are enabled.
-           </p>
+        <h2 class="text-xl font-semibold mb-4 text-gray-200">Gemini API Key</h2>
+        @if (apiKey()) {
+          <div class="flex items-center justify-between p-3 bg-[#0b0b12] rounded-md">
+            <span class="text-green-400 font-mono text-sm">API Key is set. AI features are active.</span>
+            <button (click)="removeApiKey()" class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">Remove Key</button>
+          </div>
         } @else {
-           <p class="text-sm text-amber-400 flex items-center gap-2">
-             <i class="fas fa-exclamation-triangle"></i>
-             API Key is not configured. AI features are disabled. Please set the NEXT_PUBLIC_GEMINI_API_KEY environment variable.
-           </p>
+          <p class="text-amber-400 text-sm mb-4">Please enter your Google Gemini API key to enable AI-powered features like calorie estimation and the wellness coach.</p>
+          <div class="flex space-x-2">
+            <input [type]="showApiKey() ? 'text' : 'password'"
+                  [(ngModel)]="apiKeyInput"
+                  placeholder="Enter your Gemini API Key"
+                  class="flex-grow bg-[#0b0b12] border border-gray-600 rounded-md p-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7C5CFF]">
+            <button (click)="showApiKey.set(!showApiKey())" class="px-3 bg-[#0b0b12] border border-gray-600 rounded-md text-gray-400 hover:text-white">
+              <i class="fas" [class.fa-eye-slash]="showApiKey()" [class.fa-eye]="!showApiKey()"></i>
+            </button>
+            <button (click)="saveApiKey()" [disabled]="!apiKeyInput()" class="bg-[#7C5CFF] text-white px-5 rounded-md font-semibold hover:bg-[#6a48ff] disabled:bg-gray-600">
+              Save
+            </button>
+          </div>
         }
       </div>
 
@@ -110,15 +119,28 @@ export class SettingsComponent {
   userService = inject(UserService);
   dataService = inject(DataService);
   router = inject(Router);
-  private apiKeyService = inject(ApiKeyService);
+  apiKeyService = inject(ApiKeyService);
 
   user = this.userService.currentUser;
   habits = this.dataService.habits;
   importStatus = signal<{ success: boolean; message: string } | null>(null);
 
-  isApiKeyConfigured = computed(() => !!this.apiKeyService.apiKey());
+  apiKey = this.apiKeyService.apiKey;
+  apiKeyInput = signal('');
+  showApiKey = signal(false);
 
   newHabit = { title: '', target: 1, unit: 'times' }; // unit is fixed for now for simplicity
+
+  saveApiKey(): void {
+    if (this.apiKeyInput().trim()) {
+      this.apiKeyService.setApiKey(this.apiKeyInput().trim());
+      this.apiKeyInput.set('');
+    }
+  }
+
+  removeApiKey(): void {
+    this.apiKeyService.removeApiKey();
+  }
 
   addHabit() {
     if (this.newHabit.title.trim() && this.newHabit.target > 0) {
