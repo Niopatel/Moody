@@ -19,7 +19,7 @@ import { FoodLog } from '../../models/moody.model';
 
       @if (!hasApiKey()) {
         <div class="bg-yellow-900/50 border border-yellow-500/50 rounded-lg p-4 text-center">
-          <p class="text-yellow-200">AI features are disabled. Please add a Gemini API key in Settings to enable calorie estimation.</p>
+          <p class="text-yellow-200">AI features are disabled. The application needs a Gemini API key to be configured by the developer.</p>
         </div>
       }
 

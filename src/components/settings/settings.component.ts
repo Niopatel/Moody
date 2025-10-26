@@ -63,35 +63,18 @@ import { ApiKeyService } from '../../services/api-key.service';
         </form>
       </div>
 
-      <!-- API Key Management -->
+      <!-- API Key Status -->
       <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
-        <h2 class="text-xl font-semibold mb-4 text-gray-200">Gemini API Key</h2>
-        <p class="text-sm text-gray-400 mb-4">
-          Your Gemini API key is required for all AI features. It's stored securely in your browser's local storage and never sent to our servers.
-        </p>
-        <div class="flex items-center space-x-2">
-          <input [type]="showApiKey() ? 'text' : 'password'"
-                 [(ngModel)]="apiKeyInput"
-                 placeholder="Enter your Gemini API key"
-                 class="flex-grow bg-[#0b0b12] border border-gray-600 rounded-md p-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7C5CFF] font-mono">
-          <button (click)="showApiKey.set(!showApiKey())" class="p-3 text-gray-400 hover:text-white">
-            <i class="fas" [class.fa-eye-slash]="!showApiKey()" [class.fa-eye]="showApiKey()"></i>
-          </button>
-        </div>
-        <div class="flex gap-4 mt-4">
-            <button (click)="saveApiKey()" [disabled]="!apiKeyInput()" class="flex-1 px-4 py-2 bg-green-600/80 text-white rounded-md hover:bg-green-600 disabled:bg-green-600/30">
-              Save Key
-            </button>
-            @if (apiKey()) {
-              <button (click)="removeApiKey()" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                Remove Key
-              </button>
-            }
-        </div>
+        <h2 class="text-xl font-semibold mb-4 text-gray-200">Gemini AI Status</h2>
         @if (apiKey()) {
-          <div class="flex items-center p-3 bg-green-900/40 border border-green-500/50 rounded-md mt-4">
+          <div class="flex items-center p-3 bg-green-900/40 border border-green-500/50 rounded-md">
             <i class="fas fa-check-circle text-green-500 mr-3"></i>
-            <span class="text-green-400 text-sm">API Key is saved. AI features are active.</span>
+            <span class="text-green-400 text-sm">API Key is configured. AI features are active.</span>
+          </div>
+        } @else {
+          <div class="flex items-center p-3 bg-yellow-900/50 border border-yellow-500/50 rounded-md">
+            <i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
+            <span class="text-yellow-400 text-sm">API Key not configured in the code. AI features are disabled.</span>
           </div>
         }
       </div>
@@ -134,21 +117,8 @@ export class SettingsComponent {
   importStatus = signal<{ success: boolean; message: string } | null>(null);
 
   apiKey = this.apiKeyService.apiKey;
-  apiKeyInput = signal(this.apiKey() ?? '');
-  showApiKey = signal(false);
 
   newHabit = { title: '', target: 1, unit: 'times' }; // unit is fixed for now for simplicity
-
-  saveApiKey(): void {
-    if (this.apiKeyInput().trim()) {
-      this.apiKeyService.saveKey(this.apiKeyInput().trim());
-    }
-  }
-
-  removeApiKey(): void {
-    this.apiKeyService.removeKey();
-    this.apiKeyInput.set('');
-  }
   
   addHabit() {
     if (this.newHabit.title.trim() && this.newHabit.target > 0) {

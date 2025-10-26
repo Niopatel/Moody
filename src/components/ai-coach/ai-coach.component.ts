@@ -78,7 +78,7 @@ import { ChatMessage } from '../../models/moody.model';
           </button>
         </form>
          @if (!hasApiKey()) {
-          <p class="text-xs text-amber-500 mt-2">AI features are disabled. Please add a Gemini API key in Settings.</p>
+          <p class="text-xs text-amber-500 mt-2">AI features are disabled. The application needs a Gemini API key to be configured by the developer.</p>
         }
       </footer>
     </div>
