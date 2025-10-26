@@ -26,6 +26,12 @@ interface Topic {
         <h1 class="text-3xl font-bold text-white">{{ t('ai_analysis_title') }}</h1>
         <p class="text-gray-400">{{ t('ai_analysis_subtitle') }}</p>
       </header>
+      
+      @if (!hasApiKey()) {
+        <div class="bg-amber-900/50 border border-amber-500/50 rounded-lg p-4 text-center">
+          <p class="text-amber-300">AI features are disabled. Please go to Settings to add your Gemini API key.</p>
+        </div>
+      }
 
       <div class="p-6 bg-[#131321] rounded-lg border border-white/10 min-h-[500px] flex flex-col justify-center">
         @switch (state()) {
@@ -34,7 +40,7 @@ interface Topic {
               <h2 class="text-xl font-semibold mb-6 text-gray-200">{{ t('ai_analysis_select_topic') }}</h2>
               <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 @for(topic of topics; track topic.id) {
-                  <button (click)="selectTopic(topic)" class="flex flex-col items-center p-4 bg-[#0b0b12] rounded-lg hover:bg-[#7C5CFF]/20 border border-gray-700 hover:border-[#7C5CFF]/50 transition-colors">
+                  <button (click)="selectTopic(topic)" [disabled]="!hasApiKey()" class="flex flex-col items-center p-4 bg-[#0b0b12] rounded-lg hover:bg-[#7C5CFF]/20 border border-gray-700 hover:border-[#7C5CFF]/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="{{ topic.icon }} text-3xl text-[#7C5CFF]"></i>
                     <span class="mt-2 font-medium text-gray-200">{{ t(topic.translationKey) }}</span>
                   </button>

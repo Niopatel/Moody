@@ -21,8 +21,8 @@ declare const jspdf: any;
       </header>
 
       @if (!hasApiKey()) {
-        <div class="bg-red-900/50 border border-red-500/50 rounded-lg p-4 text-center">
-          <p class="text-red-300">AI features are disabled. Please configure the NEXT_PUBLIC_GEMINI_API_KEY in your Vercel project settings and redeploy.</p>
+        <div class="bg-amber-900/50 border border-amber-500/50 rounded-lg p-4 text-center">
+          <p class="text-amber-300">AI features are disabled. Please go to Settings to add your Gemini API key.</p>
         </div>
       }
 

@@ -63,19 +63,30 @@ import { ApiKeyService } from '../../services/api-key.service';
         </form>
       </div>
 
-      <!-- API Key Status -->
+      <!-- API Key Management -->
       <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
-        <h2 class="text-xl font-semibold mb-4 text-gray-200">Gemini AI Status</h2>
+        <h2 class="text-xl font-semibold mb-4 text-gray-200">Gemini AI API Key</h2>
+        <p class="text-sm text-gray-400 mb-4">Your API key is stored securely in your browser's local storage and is never sent to our servers.</p>
+        <div class="flex items-center space-x-2">
+            <input 
+              [type]="showApiKey() ? 'text' : 'password'"
+              [(ngModel)]="apiKeyInput"
+              placeholder="Enter your Gemini API Key"
+              class="flex-grow bg-[#0b0b12] border border-gray-600 rounded-md p-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7C5CFF]">
+            <button (click)="showApiKey.set(!showApiKey())" class="p-3 text-gray-400 hover:text-white">
+              <i class="fas" [class.fa-eye]="!showApiKey()" [class.fa-eye-slash]="showApiKey()"></i>
+            </button>
+        </div>
+        <div class="mt-4 flex gap-4">
+            <button (click)="saveApiKey()" [disabled]="!apiKeyInput()" class="flex-1 px-4 py-2 bg-[#7C5CFF] text-white rounded-md hover:bg-[#6a48ff] disabled:bg-violet-500/30">
+              Save Key
+            </button>
+            <button (click)="removeApiKey()" [disabled]="!apiKey()" class="flex-1 px-4 py-2 bg-red-600/80 text-white rounded-md hover:bg-red-600 disabled:bg-red-600/30">
+              Remove Key
+            </button>
+        </div>
         @if (apiKey()) {
-          <div class="flex items-center p-3 bg-green-900/40 border border-green-500/50 rounded-md">
-            <i class="fas fa-check-circle text-green-500 mr-3"></i>
-            <span class="text-green-400 text-sm">API Key configured via environment variables. AI features are active.</span>
-          </div>
-        } @else {
-          <div class="flex items-center p-3 bg-red-900/50 border border-red-500/50 rounded-md">
-            <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
-            <span class="text-red-400 text-sm">API Key not found. Please add NEXT_PUBLIC_GEMINI_API_KEY in Vercel project settings and redeploy.</span>
-          </div>
+           <p class="text-green-400 text-sm mt-3 text-center">API Key is currently set.</p>
         }
       </div>
 
@@ -117,8 +128,25 @@ export class SettingsComponent {
   importStatus = signal<{ success: boolean; message: string } | null>(null);
 
   apiKey = this.apiKeyService.apiKey;
+  apiKeyInput = signal('');
+  showApiKey = signal(false);
 
   newHabit = { title: '', target: 1, unit: 'times' }; // unit is fixed for now for simplicity
+  
+  constructor() {
+    this.apiKeyInput.set(this.apiKey() || '');
+  }
+
+  saveApiKey(): void {
+    if (this.apiKeyInput().trim()) {
+      this.apiKeyService.saveApiKey(this.apiKeyInput().trim());
+    }
+  }
+
+  removeApiKey(): void {
+    this.apiKeyService.removeApiKey();
+    this.apiKeyInput.set('');
+  }
   
   addHabit() {
     if (this.newHabit.title.trim() && this.newHabit.target > 0) {
