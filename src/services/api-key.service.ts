@@ -1,18 +1,21 @@
-import { Injectable, signal, inject } from '@angular/core';
-import { LocalStorageService } from './local-storage.service';
+import { Injectable, signal } from '@angular/core';
+
+// In a real build process (like with Vite, Webpack, or Next.js),
+// `process.env.NEXT_PUBLIC_GEMINI_API_KEY` would be replaced with the actual key string.
+declare const process: any;
+
+// Use a variable to hold the key from the environment.
+const GEMINI_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 @Injectable({ providedIn: 'root' })
 export class ApiKeyService {
-  private ls = inject(LocalStorageService);
-  apiKey = signal<string | null>(this.ls.getItem<string | null>('gemini_api_key', null));
+  // Initialize the signal with the key from the environment variable.
+  apiKey = signal<string | null>(GEMINI_KEY || null);
 
-  setApiKey(key: string): void {
-    this.apiKey.set(key);
-    this.ls.setItem('gemini_api_key', key);
-  }
-
-  removeApiKey(): void {
-    this.apiKey.set(null);
-    this.ls.removeItem('gemini_api_key');
+  constructor() {
+    // If the key is not found, display an alert to the user.
+    if (!this.apiKey()) {
+      alert('❌ Gemini API key not found in environment. Please add NEXT_PUBLIC_GEMINI_API_KEY in Vercel settings.');
+    }
   }
 }
