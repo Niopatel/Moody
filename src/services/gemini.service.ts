@@ -1,10 +1,9 @@
 // FIX: Implemented GeminiService to handle all Google GenAI API interactions.
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject, effect } from '@angular/core';
 import { GoogleGenAI, GenerateContentResponse, Type } from '@google/genai';
 import { from, Observable, of, Subscriber } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-
-declare const process: any;
+import { ApiKeyService } from './api-key.service';
 
 export interface CalorieEstimate {
   estCalories: number;
@@ -27,22 +26,28 @@ export interface AnalysisReport {
 
 @Injectable({ providedIn: 'root' })
 export class GeminiService {
+  private apiKeyService = inject(ApiKeyService);
   private ai: GoogleGenAI | null = null;
   private apiKeyPresent = signal(false);
 
   constructor() {
-    try {
-      const apiKey = process.env.API_KEY;
+    effect(() => {
+      const apiKey = this.apiKeyService.apiKey();
       if (apiKey) {
-        this.ai = new GoogleGenAI({ apiKey });
-        this.apiKeyPresent.set(true);
+        try {
+          this.ai = new GoogleGenAI({ apiKey });
+          this.apiKeyPresent.set(true);
+        } catch (error) {
+          console.error("Failed to initialize Gemini AI:", error);
+          this.ai = null;
+          this.apiKeyPresent.set(false);
+        }
       } else {
         console.warn('Gemini API key not found. AI features will be disabled.');
+        this.ai = null;
+        this.apiKeyPresent.set(false);
       }
-    } catch (error) {
-      console.error("Failed to initialize Gemini AI:", error);
-      this.ai = null;
-    }
+    });
   }
 
   hasApiKey(): boolean {

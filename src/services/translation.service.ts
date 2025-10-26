@@ -1,31 +1,37 @@
 // FIX: Implemented TranslationService using Google GenAI API.
-import { Injectable } from '@angular/core';
+import { Injectable, inject, effect, signal } from '@angular/core';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 import { from, Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-
-declare const process: any;
+import { ApiKeyService } from './api-key.service';
 
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
+  private apiKeyService = inject(ApiKeyService);
   private ai: GoogleGenAI | null = null;
+  private apiKeyPresent = signal(false);
 
   constructor() {
-    try {
-      const apiKey = process.env.API_KEY;
+    effect(() => {
+      const apiKey = this.apiKeyService.apiKey();
       if (apiKey) {
-        this.ai = new GoogleGenAI({ apiKey });
+        try {
+          this.ai = new GoogleGenAI({ apiKey });
+          this.apiKeyPresent.set(true);
+        } catch (error) {
+          console.error("Failed to initialize Gemini AI for translation:", error);
+          this.ai = null;
+          this.apiKeyPresent.set(false);
+        }
       } else {
-        console.warn('Gemini API key not found. Translation service will be disabled.');
+        this.ai = null;
+        this.apiKeyPresent.set(false);
       }
-    } catch (error) {
-      console.error("Failed to initialize Gemini AI for translation:", error);
-      this.ai = null;
-    }
+    });
   }
 
   hasApiKey(): boolean {
-    return !!this.ai;
+    return this.apiKeyPresent();
   }
 
   // FIX: Added currentLang() method which is needed by ai-analysis.component.

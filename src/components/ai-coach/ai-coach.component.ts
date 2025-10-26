@@ -1,5 +1,5 @@
 // FIX: Implement the AiCoachComponent with a full chat interface.
-import { Component, ChangeDetectionStrategy, inject, signal, computed, ViewChild, ElementRef, afterNextRender } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, ViewChild, ElementRef, afterNextRender, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AiCoachService } from '../../services/ai-coach.service';
@@ -78,7 +78,7 @@ import { ChatMessage } from '../../models/moody.model';
           </button>
         </form>
          @if (!hasApiKey()) {
-          <p class="text-xs text-amber-500 mt-2">AI features are disabled. API key not found.</p>
+          <p class="text-xs text-amber-500 mt-2">AI features are disabled. Please add a Gemini API key in Settings.</p>
         }
       </footer>
     </div>
@@ -104,10 +104,15 @@ export class AiCoachComponent {
   isListening = signal(false);
 
   constructor() {
-    this.messages.set(this.aiCoachService.startChat());
+    effect(() => {
+      // This effect runs initially and whenever hasApiKey() changes,
+      // ensuring the chat state is always correct.
+      this.hasApiKey(); // Create dependency on API key status
+      this.messages.set(this.aiCoachService.startChat());
+      this.scrollToBottom(true);
+    });
     afterNextRender(() => {
         this.setupSpeechRecognition();
-        this.scrollToBottom(true);
     });
   }
 

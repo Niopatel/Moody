@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal, effect } from '@angular/core';
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { DataService } from './data.service';
 import { UserService } from './user.service';
@@ -6,32 +6,39 @@ import { from, Observable, of, throwError, Subscriber } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { toDateString } from '../utils/date-helpers';
 import { ChatMessage } from '../models/moody.model';
-
-declare const process: any;
+import { ApiKeyService } from './api-key.service';
 
 @Injectable({ providedIn: 'root' })
 export class AiCoachService {
   private dataService = inject(DataService);
   private userService = inject(UserService);
+  private apiKeyService = inject(ApiKeyService);
   private ai: GoogleGenAI | null = null;
   private chat: Chat | null = null;
+  private apiKeyPresent = signal(false);
 
   constructor() {
-    try {
-      const apiKey = process.env.API_KEY;
+    effect(() => {
+      const apiKey = this.apiKeyService.apiKey();
       if (apiKey) {
-        this.ai = new GoogleGenAI({ apiKey });
+        try {
+          this.ai = new GoogleGenAI({ apiKey });
+          this.apiKeyPresent.set(true);
+        } catch (error) {
+          console.error("Failed to initialize Gemini AI in AiCoachService:", error);
+          this.ai = null;
+          this.apiKeyPresent.set(false);
+        }
       } else {
-        console.warn('Gemini API key not found in environment variables. AI Coach will be disabled.');
+        this.ai = null;
+        this.apiKeyPresent.set(false);
       }
-    } catch (error) {
-      console.error("Failed to initialize Gemini AI:", error);
-      this.ai = null;
-    }
+      this.chat = null; // Reset chat when API key changes
+    });
   }
 
   hasApiKey(): boolean {
-    return !!this.ai;
+    return this.apiKeyPresent();
   }
   
   private getSystemInstruction(): string {
@@ -63,7 +70,7 @@ export class AiCoachService {
 
   startChat(): ChatMessage[] {
     if (!this.ai) {
-      return [{ role: 'model', text: 'AI Coach is disabled. Please configure your API key.' }];
+      return [{ role: 'model', text: 'AI Coach is disabled. Please configure your API key in Settings.' }];
     }
     
     const userName = this.userService.currentUser()?.name?.split(' ')[0] || 'there';

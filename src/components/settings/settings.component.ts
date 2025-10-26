@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { DataService } from '../../services/data.service';
 import { Habit } from '../../models/moody.model';
+import { ApiKeyService } from '../../services/api-key.service';
 
 @Component({
   selector: 'app-settings',
@@ -62,6 +63,38 @@ import { Habit } from '../../models/moody.model';
         </form>
       </div>
 
+      <!-- API Key Management -->
+      <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
+        <h2 class="text-xl font-semibold mb-4 text-gray-200">Gemini API Key</h2>
+        <p class="text-sm text-gray-400 mb-4">
+          Your Gemini API key is required for all AI features. It's stored in your browser's local storage and is never sent to our servers.
+        </p>
+        <div class="flex items-center space-x-2">
+          <input 
+            [type]="showApiKey() ? 'text' : 'password'"
+            [(ngModel)]="apiKeyInput"
+            name="apiKeyInput"
+            placeholder="Enter your Gemini API Key"
+            class="flex-1 p-2 border rounded-md bg-[#0b0b12] border-gray-600 text-white focus:ring-[#7C5CFF] focus:border-[#7C5CFF]">
+          <button (click)="showApiKey.set(!showApiKey())" type="button" class="p-2 text-gray-400 hover:text-white">
+            <i class="fas" [class.fa-eye]="!showApiKey()" [class.fa-eye-slash]="showApiKey()"></i>
+          </button>
+        </div>
+        <div class="flex items-center justify-between mt-4">
+          <button (click)="saveApiKey()" [disabled]="!apiKeyInput().trim()" class="px-4 py-2 bg-[#7C5CFF] text-white rounded-md hover:bg-[#6a48ff] disabled:bg-violet-500/30">
+            Save Key
+          </button>
+          @if (currentApiKey()) {
+            <button (click)="removeApiKey()" class="px-4 py-2 bg-red-600/80 text-white rounded-md hover:bg-red-700">
+              Remove Key
+            </button>
+          }
+        </div>
+        @if (apiKeyStatus()) {
+          <p class="mt-4 text-sm text-green-400">{{ apiKeyStatus() }}</p>
+        }
+      </div>
+
       <!-- Data Management -->
       <div class="p-6 bg-[#131321] rounded-lg border border-white/10">
         <h2 class="text-xl font-semibold mb-4 text-gray-200">Data Management</h2>
@@ -93,12 +126,19 @@ export class SettingsComponent {
   userService = inject(UserService);
   dataService = inject(DataService);
   router = inject(Router);
+  apiKeyService = inject(ApiKeyService);
 
   user = this.userService.currentUser;
   habits = this.dataService.habits;
   importStatus = signal<{ success: boolean; message: string } | null>(null);
 
   newHabit = { title: '', target: 1, unit: 'times' }; // unit is fixed for now for simplicity
+
+  // API Key properties
+  currentApiKey = this.apiKeyService.apiKey;
+  apiKeyInput = signal(this.apiKeyService.apiKey() || '');
+  showApiKey = signal(false);
+  apiKeyStatus = signal('');
 
   addHabit() {
     if (this.newHabit.title.trim() && this.newHabit.target > 0) {
@@ -145,5 +185,20 @@ export class SettingsComponent {
             alert('All your data has been deleted.');
         }
     }
+  }
+
+  saveApiKey(): void {
+    if (this.apiKeyInput().trim()) {
+      this.apiKeyService.setApiKey(this.apiKeyInput().trim());
+      this.apiKeyStatus.set('API Key saved successfully!');
+      setTimeout(() => this.apiKeyStatus.set(''), 3000);
+    }
+  }
+
+  removeApiKey(): void {
+    this.apiKeyService.removeApiKey();
+    this.apiKeyInput.set('');
+    this.apiKeyStatus.set('API Key removed.');
+    setTimeout(() => this.apiKeyStatus.set(''), 3000);
   }
 }
