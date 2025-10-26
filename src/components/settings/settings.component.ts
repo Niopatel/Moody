@@ -69,12 +69,12 @@ import { ApiKeyService } from '../../services/api-key.service';
         @if (apiKey()) {
           <div class="flex items-center p-3 bg-green-900/40 border border-green-500/50 rounded-md">
             <i class="fas fa-check-circle text-green-500 mr-3"></i>
-            <span class="text-green-400 text-sm">API Key is configured. AI features are active.</span>
+            <span class="text-green-400 text-sm">API Key configured via environment variables. AI features are active.</span>
           </div>
         } @else {
-          <div class="flex items-center p-3 bg-yellow-900/50 border border-yellow-500/50 rounded-md">
-            <i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
-            <span class="text-yellow-400 text-sm">API Key not configured in the code. AI features are disabled.</span>
+          <div class="flex items-center p-3 bg-red-900/50 border border-red-500/50 rounded-md">
+            <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+            <span class="text-red-400 text-sm">API Key not found. Please add NEXT_PUBLIC_GEMINI_API_KEY in Vercel project settings and redeploy.</span>
           </div>
         }
       </div>

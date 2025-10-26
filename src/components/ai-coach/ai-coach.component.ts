@@ -78,7 +78,7 @@ import { ChatMessage } from '../../models/moody.model';
           </button>
         </form>
          @if (!hasApiKey()) {
-          <p class="text-xs text-amber-500 mt-2">AI features are disabled. The application needs a Gemini API key to be configured by the developer.</p>
+          <p class="text-xs text-red-400 mt-2">AI features are disabled. Please configure the NEXT_PUBLIC_GEMINI_API_KEY in your Vercel project settings and redeploy.</p>
         }
       </footer>
     </div>

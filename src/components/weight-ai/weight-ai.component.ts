@@ -18,8 +18,8 @@ import { FoodLog, WeightLog } from '../../models/moody.model';
       </header>
 
       @if (!hasApiKey()) {
-        <div class="bg-yellow-900/50 border border-yellow-500/50 rounded-lg p-4 text-center">
-          <p class="text-yellow-200">AI features are disabled. The application needs a Gemini API key to be configured by the developer.</p>
+        <div class="bg-red-900/50 border border-red-500/50 rounded-lg p-4 text-center">
+          <p class="text-red-300">AI features are disabled. Please configure the NEXT_PUBLIC_GEMINI_API_KEY in your Vercel project settings and redeploy.</p>
         </div>
       }
 
